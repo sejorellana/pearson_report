@@ -24,7 +24,7 @@ class FileLib {
             $list = $oFile->getContent();
             $ifName = $oFile->getName();
             $ifExtension = $oFile->getExtension();
-            $dir = __DIR__ . "/../Web/Uploads/Pendings/";
+            $dir = __DIR__ . "/../Web/Pendings/";
             
             $fp = fopen($dir."$ifName.$ifExtension", 'w');
 
