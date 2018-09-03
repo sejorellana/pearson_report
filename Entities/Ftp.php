@@ -10,6 +10,7 @@ class Ftp {
     private $server;
     private $username;
     private $password;
+    private $folder;
 
     function __construct() {
         
@@ -27,6 +28,10 @@ class Ftp {
         return $this->password;
     }
 
+    function getFolder() {
+        return $this->folder;
+    }
+
     function setServer($server) {
         $this->server = $server;
     }
@@ -37,6 +42,10 @@ class Ftp {
 
     function setPassword($password) {
         $this->password = $password;
+    }
+
+    function setFolder($folder) {
+        $this->folder = $folder;
     }
 
 }

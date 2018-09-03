@@ -122,6 +122,7 @@ class FileController {
             $ftpServer = $oFtp->getServer();
             $username = $oFtp->getUsername();
             $password = $oFtp->getPassword();
+            $ftpFolder = $oFtp->getFolder();
             //Getting Input File information
             $ifName = $oFile->getName();
             $ifExtension = $oFile->getExtension();
@@ -135,7 +136,7 @@ class FileController {
                 $sMessage = $aBkFile["message"];
                 $aReturn = array("result" => FALSE, "message" => $sMessage);
             } else {
-                if (ftp_put($ftpConn, "pearson/$ifFtpName.txt", $ifFile, FTP_ASCII)) {
+                if (ftp_put($ftpConn, "$ftpFolder/$ifFtpName.txt", $ifFile, FTP_ASCII)) {
                     $this->__clean($oFile);
                     $aReturn = array("result" => TRUE, "message" => "Successfully uploaded $ifFile");
                 } else {
