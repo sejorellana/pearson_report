@@ -12,7 +12,7 @@ include_once __DIR__ . '/../Entities/Ftp.php';
 class FileController {
 
     /**
-     * __create
+     * create
      * 
      * Create a file base on the inputs.
      * 
@@ -20,8 +20,8 @@ class FileController {
      * @param String $delimiter
      * @return Array result+message
      */
-    private function __create($oFile, $delimiter) {
-        $aReturn = array("result" => FALSE, "message" => ">The file wasn't created");
+    private function create($oFile, $delimiter) {
+        $aReturn = array("result" => FALSE, "message" => "The file wasn't created");
         try {
             $oFileLib = new FileLib();
             $aReturn = $oFileLib->create($oFile, $delimiter);
@@ -36,15 +36,15 @@ class FileController {
     }
 
     /**
-     * __bkFile
+     * bkFile
      * 
      * Make a backup for the file provided
      * 
      * @param File $oFile
      * @return Array result+message
      */
-    private function __bkFile($oFile) {
-        $aReturn = array("result" => FALSE, "message" => ">The file wasn't created");
+    private function bkFile($oFile) {
+        $aReturn = array("result" => FALSE, "message" => "The file wasn't created");
         try {
             //Input File/Directory
             $ifName = $oFile->getName();
@@ -73,13 +73,13 @@ class FileController {
     }
 
     /**
-     * __clean
+     * clean
      * 
      * Delete a file
      * 
      * @param File $oFile
      */
-    private function __clean($oFile) {
+    private function clean($oFile) {
         try {
             $ifName = $oFile->getName();
             $ifExtension = $oFile->getExtension();
@@ -91,12 +91,12 @@ class FileController {
     }
 
     /**
-     * __cleanNewest
+     * cleanNewest
      * 
      * Delete the newest file in the folder Uploads
      * 
      */
-    private function __cleanNewest() {
+    private function cleanNewest() {
         try {
             $ofFiles = scandir(__DIR__ . "/../Web/Uploads/", SCANDIR_SORT_DESCENDING);
             $ifNewest = $ofFiles[0];
@@ -131,16 +131,16 @@ class FileController {
             $ftpConn = ftp_connect($ftpServer) or die("Could not connect to $ftpServer");
             $login = ftp_login($ftpConn, $username, $password);
             //Making a Backup for the file
-            $aBkFile = $this->__bkFile($oFile);
+            $aBkFile = $this->bkFile($oFile);
             if (!$aBkFile["result"]) {
                 $sMessage = $aBkFile["message"];
                 $aReturn = array("result" => FALSE, "message" => $sMessage);
             } else {
                 if (ftp_put($ftpConn, "$ftpFolder/$ifFtpName.txt", $ifFile, FTP_ASCII)) {
-                    $this->__clean($oFile);
+                    $this->clean($oFile);
                     $aReturn = array("result" => TRUE, "message" => "Successfully uploaded $ifFile");
                 } else {
-                    $this->__cleanNewest();
+                    $this->cleanNewest();
                     $aReturn = array("result" => FALSE, "message" => "The file wasn't uploaded");
                 }
             }
@@ -150,7 +150,7 @@ class FileController {
         }
         return $aReturn;
     }
-    
+
     /**
      * sendReport
      * 
@@ -165,7 +165,7 @@ class FileController {
     public function sendReport($oFile, $delimiter, $oFtp, $ifFtpName) {
         $aReturn = array("result" => FALSE, "message" => "An error has occurr");
         try {
-            $aCreateFile = $this->__create($oFile, $delimiter);
+            $aCreateFile = $this->create($oFile, $delimiter);
             if ($aCreateFile["result"]) {
                 $aMove2 = $this->__move2($oFile, $oFtp, $ifFtpName);
                 if ($aMove2["result"]) {
@@ -185,13 +185,11 @@ class FileController {
 }
 
 //$oFile = new File();
-//$oFile->setName("prueba");
+//$oInteraction = new InteractionsReport();
+//$aInteraction = $oInteraction->getReport();
+//$oFile->setName("interactionReport");
 //$oFile->setExtension("txt");
-//$lista = array(
-//    array('aaa', 'bbb', 'ccc', 'dddd'),
-//    array('123', '456', '789'),
-//    array('"aaa"', '"bbb"')
-//);
+//$lista = $aInteraction;
 //$oFile->setContent($lista);
 //
 //$delimiter = " ";
@@ -200,8 +198,9 @@ class FileController {
 //$oFtp->setServer("172.25.185.22");
 //$oFtp->setUsername("Josue");
 //$oFtp->setPassword("123456");
+//$oFtp->setFolder("pearson");
 //
-//$ifFtpName = "prueba_completa";
+//$ifFtpName = "interactionstest";
 //$oFile = new File();
 //$oFile->setName("archivo");
 //$oFile->setExtension("txt");
@@ -210,4 +209,4 @@ class FileController {
 //echo json_encode($oFileController->test($oFile, $delimiter));
 //echo json_encode($oFileController->sendReport($oFile, $delimiter, $oFtp, $ifFtpName));
 //echo json_encode($oFileController->__move2($oFile, $oFtp));
-//echo json_encode($oFileController->__bkFile($oFile));
+//echo json_encode($oFileController->bkFile($oFile));
