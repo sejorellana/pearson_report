@@ -20,7 +20,7 @@ class FileController {
      * @param String $delimiter
      * @return Array result+message
      */
-    private function create($oFile, $delimiter) {
+    public function create($oFile, $delimiter) {
         $aReturn = array("result" => FALSE, "message" => "The file wasn't created");
         try {
             $oFileLib = new FileLib();
