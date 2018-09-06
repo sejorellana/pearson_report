@@ -45,9 +45,11 @@ class queueController {
             $password = $aSetup["password"];
 
             $aRange = $this->getRange();
-            if($aRange["result"]){
-                $start = $aRange["start"];
-                $end = $aRange["end"];
+            if ($aRange["result"]) {
+//                $start = $aRange["start"];
+//                $end = $aRange["end"];
+                $start = "2018-09-06T00:00:00.000Z";
+                $end = "2018-09-06T23:59:59.000Z";
             }
 
             $oApi = new Api();
@@ -67,24 +69,68 @@ class queueController {
         return $aReturn;
     }
 
-//    private function interactionsId() {
+    /**
+     * Get the content of the interaction request
+     * 
+     * @return Array
+     */
+    private function getResult() {
+        $aResult = array();
+        try {
+            $aTmpInteractions = $this->interaction();
+            if (array_key_exists("results", $aTmpInteractions)) {
+                if ($aTmpInteractions["results"] != NULL) {
+                    $aResult = $aTmpInteractions["results"];
+                }
+            }
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $aResult;
+    }
+
+    /**
+     * getSegmentsMetrics
+     * 
+     * Get the total of segments and the total of answered segments
+     * 
+     * @param Array $aResults
+     * @return Array
+     */
+//    private function getSegmentsMetrics($aResults) {
 //        $aReturn = array();
 //        try {
-//            $aBody = $this->interaction();
-//            if (array_key_exists("results", $aBody)) {
-//                $aInteractions = $aBody["results"];
-//                foreach ($aInteractions as $row):
-//                    array_push($aReturn, $row["interactionId"]);
+//            $iCountSegments = 0;
+//            $iAnsweredSegments = 0;
+//            foreach ($aResults as $interaction):
+//                $aSegments = $interaction["segments"];
+//                $iCountSegments += count($aSegments);
+//                foreach ($aSegments as $segment):
+//                    if ($segment["segmentEndType"] == "success") {
+//                        $iAnsweredSegments++;
+//                    }
 //                endforeach;
-//            }
+//            endforeach;
+//            array_push($aReturn, array("count" => $iCountSegments, "answered" => $iAnsweredSegments));
 //        } catch (Exception $exc) {
 //            echo $exc->getTraceAsString();
 //        }
 //        return $aReturn;
 //    }
 
-    public function test() {
-        return $this->interactionsId();
+    public function getQueueWise() {
+        $aReport = array();
+        $aRange = $this->getRange();
+        $aResults = $this->getResult();
+        $aSegmentsMetrics = $this->getSegmentsMetrics($aResults);
+        //columns
+        $halfHours = $aRange["start"];
+        $TcsData = "TCSDATA";
+        $allSegments = $aSegmentsMetrics["count"];
+        $answeredSegmets = $aSegmentsMetrics["answered"];
+
+        array_push($aReport, array($halfHours, $TcsData, $allSegments, $answeredSegmets));
+        return $aReport;
     }
 
     private function getRange() {
@@ -100,5 +146,5 @@ class queueController {
 }
 
 //https://api.cxengage.net/v1/tenants/a44ed48e-8312-47f0-9bfa-6e41a4da1082/interactions/73685210-b07c-11e8-8aa4-3047015466dd/realtime-statistics/resource-wrap-up-time
-//$o = new queueController();
-//var_dump($o->test());
+$o = new queueController();
+echo json_encode($o->test());
