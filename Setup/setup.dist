@@ -1,0 +1,11 @@
+{
+    "userId": "a44ed48e-8312-47f0-9bfa-6e41a4da1082",
+    "username": "jorellana@serenova.com",
+    "password": "JO211090cristo@1",
+    "tenantId": "fffd5815-b6cc-4ae9-a8b2-cc34e072238f",
+    "tenantName": "RBC",    
+    "ftpUser": "Josue",    
+    "ftpPassword": "123456",    
+    "ftpPort": "21",    
+    "ftpFolder": "pearson"    
+}
