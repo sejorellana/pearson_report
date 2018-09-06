@@ -40,7 +40,14 @@ class agentController {
         }
         return $aTimes;
     }
-
+    
+    /**
+     * wfmInterval
+     * 
+     * Get metric of the last half hour
+     * 
+     * @return Array
+     */
     private function wfmInterval() {
         $aReturn = array();
         try {
@@ -73,7 +80,14 @@ class agentController {
         }
         return $aReturn;
     }
-
+    
+    /**
+     * getAgentReport
+     * 
+     * Get the report agent performance
+     * 
+     * @return Array
+     */
     public function getAgentReport() {
         $aReport = array();
         $aRawInterval = $this->wfmInterval();
@@ -100,20 +114,8 @@ class agentController {
                 $cOfferedCallCount = $interval["offeredCallCount"];
                 array_push($aReport, array($cAgentID, $cAvgCallLength, $cAvgCallLengthvgTimeToAnswer, $cAvgwraplen, $cCalls, $cCampaign, $cCounter, $cHalfHour, $cOfferedCallCount));
             endforeach;
-        }
-        $oFile = new File();
-        $timestamp = new \DateTime();
-
-        $oFile->setName("agentsPerformance_{$timestamp->format("YmdHis")}");
-        $oFile->setExtension("txt");
-        $oFile->setContent($aReport);
-        $delimiter = " ";
-        $oFileController = new FileController();
-        $aReportCreation = $oFileController->create($oFile, $delimiter);
-        return $aReportCreation;
+        }        
+        return $aReport;
     }
 
 }
-
-//$o = new agentController();
-//echo json_encode($o->getAgentReport());
