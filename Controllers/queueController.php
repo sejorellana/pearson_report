@@ -28,7 +28,7 @@ class queueController {
         }
         return $aJson;
     }
-    
+
     /**
      * interaction
      * 
@@ -44,9 +44,15 @@ class queueController {
             $username = $aSetup["username"];
             $password = $aSetup["password"];
 
+            $aRange = $this->getRange();
+            if($aRange["result"]){
+                $start = $aRange["start"];
+                $end = $aRange["end"];
+            }
+
             $oApi = new Api();
             $oApi->setMethod("GET");
-            $oApi->setUrl("https://api.cxengage.net/v1/tenants/$tenant/interactions");
+            $oApi->setUrl("https://api.cxengage.net/v1/tenants/$tenant/interactions?start=$start&end=$end&limit=1000&includenulls=true");
             $oApi->setData(array());
 
             $oCredential = new Credential();
@@ -60,35 +66,39 @@ class queueController {
         }
         return $aReturn;
     }
-    
-    /**
-     * interactionsId
-     * 
-     * Get the UUID for each interaction
-     * 
-     * @return Array
-     */
-    private function interactionsId() {
-        $aReturn = array();
-        try {
-            $aBody = $this->interaction();
-            if (array_key_exists("results", $aBody)) {
-                $aInteractions = $aBody["results"];
-                foreach ($aInteractions as $row):
-                    array_push($aReturn, $row["interactionId"]);
-                endforeach;
-            }
-        } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
-        }
-        return $aReturn;
-    }
+
+//    private function interactionsId() {
+//        $aReturn = array();
+//        try {
+//            $aBody = $this->interaction();
+//            if (array_key_exists("results", $aBody)) {
+//                $aInteractions = $aBody["results"];
+//                foreach ($aInteractions as $row):
+//                    array_push($aReturn, $row["interactionId"]);
+//                endforeach;
+//            }
+//        } catch (Exception $exc) {
+//            echo $exc->getTraceAsString();
+//        }
+//        return $aReturn;
+//    }
 
     public function test() {
         return $this->interactionsId();
     }
 
+    private function getRange() {
+        try {
+            $oTime = new TimeController();
+            $aTimes = $oTime->getRange();
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $aTimes;
+    }
+
 }
 
+//https://api.cxengage.net/v1/tenants/a44ed48e-8312-47f0-9bfa-6e41a4da1082/interactions/73685210-b07c-11e8-8aa4-3047015466dd/realtime-statistics/resource-wrap-up-time
 //$o = new queueController();
 //var_dump($o->test());

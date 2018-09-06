@@ -17,7 +17,7 @@ class TimeController {
     private function now() {
         try {
             $dtNow = new DateTime();
-            $sUtc = $dtNow->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+            $sUtc = $dtNow->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i');
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
@@ -35,7 +35,7 @@ class TimeController {
         try {
             $time = strtotime($sDateTime);
             $time = $time - (30 * 60);
-            $date = date("Y-m-d H:i:s", $time);
+            $date = date("Y-m-d H:i", $time);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
@@ -53,11 +53,38 @@ class TimeController {
     private function format($date) {
         try {
             $aDate = explode(" ", $date);
-            $sDateTime = $aDate[0] . "T" . $aDate[1] . "Z";
+            $time = $aDate[1];
+            $aTime = explode(":", $time);
+            $hour = $aTime[0];
+            if ($aTime[1] < 15) {
+                $minute = "00";
+            } else {
+                if ($aTime[1] >= 15 && $aTime[1] < 30) {
+                    $minute = "15";
+                } else {
+                    if ($aTime[1] >= 30 && $aTime[1] < 45) {
+                        $minute = "30";
+                    } else {
+                        $minute = "45";
+                    }
+                }
+            }
+            $sDateTime = $aDate[0] . "T" . $hour . ":" . $minute . "Z";
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
         return $sDateTime;
+    }
+
+    private function middle($sDateTime) {
+        try {
+            $time = strtotime($sDateTime);
+            $time = $time + (15 * 60);
+            $date = date("Y-m-d H:i", $time);
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $date;
     }
 
     /**
@@ -74,7 +101,9 @@ class TimeController {
             $dtStart = $this->start($dtEnd);
             $sEnd = $this->format($dtEnd);
             $sStart = $this->format($dtStart);
-            $aReturn = array("result" => TRUE, "start" => $sStart, "end" => $sEnd);
+            $sMiddle = $this->middle($dtStart);
+            $sMiddle = $this->format($sMiddle);
+            $aReturn = array("result" => TRUE, "start" => $sStart, "middle" => $sMiddle, "end" => $sEnd);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
