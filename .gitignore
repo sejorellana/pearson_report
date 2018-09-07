@@ -1,3 +1,6 @@
 /Web/Pendings/*
 /Web/Uploads/*
 nbproject/*
+/Setup/setup.json
+/Setup/campaign.json
+/Setup/mail.json
