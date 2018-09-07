@@ -75,7 +75,15 @@ class TimeController {
         }
         return $sDateTime;
     }
-
+    
+    /**
+     * middle
+     * 
+     * Get the next 15 minutes of the timestamp given
+     * 
+     * @param String $sDateTime
+     * @return Date
+     */
     private function middle($sDateTime) {
         try {
             $time = strtotime($sDateTime);
@@ -88,7 +96,7 @@ class TimeController {
     }
 
     /**
-     * __getRange
+     * getRange
      * 
      * Get the start and end time for a report
      * 

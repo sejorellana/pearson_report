@@ -212,31 +212,3 @@ class FileController {
     }
 
 }
-
-//$oFile = new File();
-//$oInteraction = new InteractionsReport();
-//$aInteraction = $oInteraction->getReport();
-//$oFile->setName("interactionReport");
-//$oFile->setExtension("txt");
-//$lista = $aInteraction;
-//$oFile->setContent($lista);
-//
-//$delimiter = " ";
-//
-//$oFtp = new Ftp();
-//$oFtp->setServer("172.25.185.22");
-//$oFtp->setUsername("Josue");
-//$oFtp->setPassword("123456");
-//$oFtp->setFolder("pearson");
-//
-//$ifFtpName = "interactionstest";
-//$oFile = new File();
-//$oFile->setName("archivo");
-//$oFile->setExtension("txt");
-
-//$oFileController = new FileController();
-//echo json_encode($oFileController->create($oFile, $delimiter));
-//echo json_encode($oFileController->test($oFile, $delimiter));
-//echo json_encode($oFileController->sendReport($oFile, $delimiter, $oFtp, $ifFtpName));
-//echo json_encode($oFileController->__move2($oFile, $oFtp));
-//echo json_encode($oFileController->bkFile($oFile));

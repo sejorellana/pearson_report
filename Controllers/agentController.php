@@ -30,7 +30,14 @@ class agentController {
         }
         return $aJson;
     }
-
+    
+    /**
+     * getRange
+     * 
+     * Get the range of time to analyze
+     * 
+     * @return Array
+     */
     private function getRange() {
         try {
             $oTime = new TimeController();
@@ -58,10 +65,10 @@ class agentController {
 
             $aRange = $this->getRange();
             if ($aRange["result"]) {
-//                $start = $aRange["start"];
-//                $end = $aRange["end"];
-                $start = "2018-09-06T12:00Z";
-                $end = "2018-09-06T12:30";
+                $start = $aRange["start"];
+                $end = $aRange["end"];
+//                $start = "2018-09-06T12:00Z";
+//                $end = "2018-09-06T12:30";
             }
 
             $oApi = new Api();
@@ -98,10 +105,10 @@ class agentController {
 
             $aRange = $this->getRange();
             if ($aRange["result"]) {
-//                $start = $aRange["start"];
-//                $end = $aRange["end"];
-                $start = "2018-09-06T12:00Z";
-                $end = "2018-09-06T12:30";
+                $start = $aRange["start"];
+                $end = $aRange["end"];
+//                $start = "2018-09-06T12:00Z";
+//                $end = "2018-09-06T12:30";
             }
 
             $oApi = new Api();

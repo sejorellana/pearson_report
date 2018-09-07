@@ -29,6 +29,13 @@ class queueController {
         return $aJson;
     }
 
+    /**
+     * getRange
+     * 
+     * Get the range of time to analyze
+     * 
+     * @return Array
+     */
     private function getRange() {
         try {
             $oTime = new TimeController();
@@ -56,10 +63,10 @@ class queueController {
 
             $aRange = $this->getRange();
             if ($aRange["result"]) {
-//                $start = $aRange["start"];
-//                $end = $aRange["end"];
-                $start = "2018-09-06T12:00Z";
-                $end = "2018-09-06T12:30";
+                $start = $aRange["start"];
+                $end = $aRange["end"];
+//                $start = "2018-09-06T12:00Z";
+//                $end = "2018-09-06T12:30";
             }
 
             $oApi = new Api();
@@ -96,10 +103,10 @@ class queueController {
 
             $aRange = $this->getRange();
             if ($aRange["result"]) {
-//                $start = $aRange["start"];
-//                $end = $aRange["end"];
-                $start = "2018-09-06T12:00Z";
-                $end = "2018-09-06T12:30";
+                $start = $aRange["start"];
+                $end = $aRange["end"];
+//                $start = "2018-09-06T12:00Z";
+//                $end = "2018-09-06T12:30";
             }
 
             $oApi = new Api();
@@ -121,7 +128,14 @@ class queueController {
         }
         return $aReturn;
     }
-
+    
+    /**
+     * getSegments
+     * 
+     * GEt raw segments of all interactions
+     * 
+     * @return Array
+     */
     private function getSegments() {
         $aReturn = array();
         try {
@@ -144,7 +158,14 @@ class queueController {
         }
         return $aReturn;
     }
-
+    
+    /**
+     * getSegmentsByQueue
+     * 
+     * Get the segments group by groups
+     * 
+     * @return Array
+     */
     private function getSegmentsByQueue() {
         $aReturn = array();
         try {
@@ -171,7 +192,14 @@ class queueController {
 
         return $aReturn;
     }
-
+    
+    /**
+     * getCount
+     * 
+     * Return the total of segments and the total of answered segments by queue
+     * 
+     * @return Array
+     */
     private function getCount() {
         $aResult = array();
         try {
