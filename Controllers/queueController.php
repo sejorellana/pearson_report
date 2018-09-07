@@ -29,14 +29,24 @@ class queueController {
         return $aJson;
     }
 
+    private function getRange() {
+        try {
+            $oTime = new TimeController();
+            $aTimes = $oTime->getRange();
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $aTimes;
+    }
+
     /**
-     * interaction
+     * wfmAgentInterval
      * 
-     * Get the raw response of the interactions
+     * Get metric of the last half hour
      * 
      * @return Array
      */
-    private function interaction() {
+    private function wfmQueueInterval() {
         $aReturn = array();
         try {
             $aSetup = $this->parseSetup();
@@ -48,13 +58,13 @@ class queueController {
             if ($aRange["result"]) {
 //                $start = $aRange["start"];
 //                $end = $aRange["end"];
-                $start = "2018-09-06T00:00:00.000Z";
-                $end = "2018-09-06T23:59:59.000Z";
+                $start = "2018-09-06T12:00Z";
+                $end = "2018-09-06T12:30";
             }
 
             $oApi = new Api();
             $oApi->setMethod("GET");
-            $oApi->setUrl("https://api.cxengage.net/v1/tenants/$tenant/interactions?start=$start&end=$end&limit=1000&includenulls=true");
+            $oApi->setUrl("https://api.cxengage.net/v1/tenants/$tenant/wfm/intervals/queue?start=$start&end=$end&limit=1000&includenulls=true");
             $oApi->setData(array());
 
             $oCredential = new Credential();
@@ -62,7 +72,7 @@ class queueController {
             $oCredential->setPassword($password);
 
             $oApiLib = new ApiLib();
-            $aReturn = json_decode($oApiLib->get($oApi, $oCredential), true);
+            $aReturn = array("interval" => json_decode($oApiLib->get($oApi, $oCredential), true), "start" => $start);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
@@ -70,19 +80,119 @@ class queueController {
     }
 
     /**
-     * Get the content of the interaction request
+     * interactions
+     * 
+     * Get the raw of interactions
      * 
      * @return Array
      */
-    private function getResult() {
+    private function interactions() {
+        $aReturn = array();
+        try {
+            $aSetup = $this->parseSetup();
+            $tenant = $aSetup["tenantId"];
+            $username = $aSetup["username"];
+            $password = $aSetup["password"];
+
+            $aRange = $this->getRange();
+            if ($aRange["result"]) {
+//                $start = $aRange["start"];
+//                $end = $aRange["end"];
+                $start = "2018-09-06T12:00Z";
+                $end = "2018-09-06T12:30";
+            }
+
+            $oApi = new Api();
+            $oApi->setMethod("GET");
+            $oApi->setUrl("https://api.cxengage.net/v1/tenants/$tenant/interactions?start=$start&end=$end&includenulls=true&limit=1000");
+            $oApi->setData(array());
+
+            $oCredential = new Credential();
+            $oCredential->setUsername($username);
+            $oCredential->setPassword($password);
+
+            $oApiLib = new ApiLib();
+            $aTmpInteractions = json_decode($oApiLib->get($oApi, $oCredential), true);
+            if (array_key_exists("results", $aTmpInteractions)) {
+                $aReturn = $aTmpInteractions["results"];
+            }
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $aReturn;
+    }
+
+    private function getSegments() {
+        $aReturn = array();
+        try {
+            $aSegments = array();
+            $aInteractions = $this->interactions();
+            foreach ($aInteractions as $interaction):
+                if (array_key_exists("segments", $interaction)) {
+                    $segments = $interaction["segments"];
+                    foreach ($segments as $seg):
+                        $interactionSegmentId = $seg["interactionSegmentId"];
+                        if (!array_key_exists("$interactionSegmentId", $aSegments)) {
+                            $aSegments["{$seg["interactionSegmentId"]}"] = $seg["segmentEndType"];
+                        }
+                    endforeach;
+                }
+            endforeach;
+            $aReturn = $aSegments;
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $aReturn;
+    }
+
+    private function getSegmentsByQueue() {
+        $aReturn = array();
+        try {
+            $aSegmentsByQueue = array();
+            $aInteractions = $this->interactions();
+            foreach ($aInteractions as $interaction):
+                if (array_key_exists("queues", $interaction)) {
+                    $segmentsByQueue = $interaction["queues"];
+                    if (count($segmentsByQueue) > 0) {
+                        foreach ($segmentsByQueue as $segByQueue):
+                            $interactionSegmentId = $segByQueue["interactionSegmentId"];
+                            $queue = $segByQueue["queueName"];
+                            if (!array_key_exists("$interactionSegmentId", $aSegmentsByQueue)) {
+                                $aSegmentsByQueue[$interactionSegmentId] = $queue;
+                            }
+                        endforeach;
+                    }
+                }
+            endforeach;
+            $aReturn = $aSegmentsByQueue;
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+
+        return $aReturn;
+    }
+
+    private function getCount() {
         $aResult = array();
         try {
-            $aTmpInteractions = $this->interaction();
-            if (array_key_exists("results", $aTmpInteractions)) {
-                if ($aTmpInteractions["results"] != NULL) {
-                    $aResult = $aTmpInteractions["results"];
+            $aSegments = $this->getSegments();
+            $aSegmentsByQueue = $this->getSegmentsByQueue();
+            $aQueues = array();
+            foreach ($aSegmentsByQueue as $segmentQueueId => $queue):
+                if (array_key_exists($queue, $aQueues)) {
+                    $aQueues[$queue]["total"] += 1;
+                    if ($aSegments["$segmentQueueId"] == "success") {
+                        $aQueues[$queue]["asnwered"] += 1;
+                    }
+                } else {
+                    if ($aSegments["$segmentQueueId"] == "success") {
+                        $aQueues[$queue] = array("total" => 1, "asnwered" => 1);
+                    } else {
+                        $aQueues[$queue] = array("total" => 1, "asnwered" => 0);
+                    }
                 }
-            }
+            endforeach;
+            $aResult = $aQueues;
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
@@ -90,61 +200,53 @@ class queueController {
     }
 
     /**
-     * getSegmentsMetrics
+     * getQueuesReport
      * 
-     * Get the total of segments and the total of answered segments
+     * Get the report queuewise
      * 
-     * @param Array $aResults
      * @return Array
      */
-//    private function getSegmentsMetrics($aResults) {
-//        $aReturn = array();
-//        try {
-//            $iCountSegments = 0;
-//            $iAnsweredSegments = 0;
-//            foreach ($aResults as $interaction):
-//                $aSegments = $interaction["segments"];
-//                $iCountSegments += count($aSegments);
-//                foreach ($aSegments as $segment):
-//                    if ($segment["segmentEndType"] == "success") {
-//                        $iAnsweredSegments++;
-//                    }
-//                endforeach;
-//            endforeach;
-//            array_push($aReturn, array("count" => $iCountSegments, "answered" => $iAnsweredSegments));
-//        } catch (Exception $exc) {
-//            echo $exc->getTraceAsString();
-//        }
-//        return $aReturn;
-//    }
-
-    public function getQueueWise() {
+    public function getQueuesReport() {
         $aReport = array();
-        $aRange = $this->getRange();
-        $aResults = $this->getResult();
-        $aSegmentsMetrics = $this->getSegmentsMetrics($aResults);
-        //columns
-        $halfHours = $aRange["start"];
-        $TcsData = "TCSDATA";
-        $allSegments = $aSegmentsMetrics["count"];
-        $answeredSegmets = $aSegmentsMetrics["answered"];
+        $aRawQueueInterval = $this->wfmQueueInterval();
+        $aTmpInterval = $aRawQueueInterval["interval"];
+        $aSegmentsCount = $this->getCount();
+        if (array_key_exists("results", $aTmpInterval)) {
+            $aInterval = $aTmpInterval["results"];
+            foreach ($aInterval as $interval):
+                $cHalfHour = $aRawQueueInterval["start"];
+                $tcsData = "TCSDATA";
+                $cCallType = $interval["queueName"];
+                if (array_key_exists($cCallType, $aSegmentsCount)) {
+                    $cSegments = $aSegmentsCount[$cCallType]["total"];
+                    $cAnsweredSegments = $aSegmentsCount[$cCallType]["asnwered"];
+                } else {
+                    $cSegments = "0";
+                    $cAnsweredSegments = "0";
+                }
 
-        array_push($aReport, array($halfHours, $TcsData, $allSegments, $answeredSegmets));
+                $cAvgTimeToAnswer = $interval["avgTimeToAnswer"];
+
+                $answerTime = $interval["answerTime"];
+                $numberOfCalls = $interval["answeredCallCount"];
+                if ($numberOfCalls != 0) {
+                    $cAvgCallLength = $answerTime / $numberOfCalls;
+                } else {
+                    $cAvgCallLength = 0;
+                }
+
+                $agentWrapUpTime = $interval["agentWrapUpTime"];
+                if ($numberOfCalls != 0) {
+                    $cAvgWrapUpTime = $agentWrapUpTime / $numberOfCalls;
+                } else {
+                    $cAvgWrapUpTime = 0;
+                }
+
+                $cSla = $interval["sla"];
+                array_push($aReport, array($cHalfHour, $tcsData, $cCallType, $cSegments, $cAnsweredSegments, $cAvgTimeToAnswer, $cAvgCallLength, $cAvgWrapUpTime, $cSla));
+            endforeach;
+        }
         return $aReport;
     }
 
-    private function getRange() {
-        try {
-            $oTime = new TimeController();
-            $aTimes = $oTime->getRange();
-        } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
-        }
-        return $aTimes;
-    }
-
 }
-
-//https://api.cxengage.net/v1/tenants/a44ed48e-8312-47f0-9bfa-6e41a4da1082/interactions/73685210-b07c-11e8-8aa4-3047015466dd/realtime-statistics/resource-wrap-up-time
-$o = new queueController();
-echo json_encode($o->test());
