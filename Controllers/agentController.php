@@ -40,15 +40,15 @@ class agentController {
         }
         return $aTimes;
     }
-    
+
     /**
-     * wfmInterval
+     * wfmAgentInterval
      * 
      * Get metric of the last half hour
      * 
      * @return Array
      */
-    private function wfmInterval() {
+    private function wfmAgentInterval() {
         $aReturn = array();
         try {
             $aSetup = $this->parseSetup();
@@ -80,7 +80,47 @@ class agentController {
         }
         return $aReturn;
     }
-    
+
+    /**
+     * wfmAgentQueueInterval
+     * 
+     * Get metric of the last half hour
+     * 
+     * @return Array
+     */
+    private function wfmAgentQueueInterval() {
+        $aReturn = array();
+        try {
+            $aSetup = $this->parseSetup();
+            $tenant = $aSetup["tenantId"];
+            $username = $aSetup["username"];
+            $password = $aSetup["password"];
+
+            $aRange = $this->getRange();
+            if ($aRange["result"]) {
+//                $start = $aRange["start"];
+//                $end = $aRange["end"];
+                $start = "2018-09-06T12:00Z";
+                $end = "2018-09-06T12:30";
+            }
+
+            $oApi = new Api();
+            $oApi->setMethod("GET");
+            $oApi->setUrl("https://api.cxengage.net/v1/tenants/$tenant/wfm/intervals/agent-queue?start=$start&end=$end&limit=1000");
+            $oApi->setData(array());
+
+            $oCredential = new Credential();
+            $oCredential->setUsername($username);
+            $oCredential->setPassword($password);
+
+            $oApiLib = new ApiLib();
+            $aReturn = array("interval" => json_decode($oApiLib->get($oApi, $oCredential), true), "start" => $start);
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+        return $aReturn;
+    }
+
     /**
      * getAgentReport
      * 
@@ -90,31 +130,41 @@ class agentController {
      */
     public function getAgentReport() {
         $aReport = array();
-        $aRawInterval = $this->wfmInterval();
-        $aTmpInterval = $aRawInterval["interval"];
+        $aRawAgentInterval = $this->wfmAgentInterval();
+        $aTmpInterval = $aRawAgentInterval["interval"];
+        $aRawAgentQueueInterval = $this->wfmAgentQueueInterval();
+        $aTmpAgentQueueInterval = $aRawAgentQueueInterval["interval"];
         $cCounter = 0;
-        if (array_key_exists("results", $aTmpInterval)) {
+        if (array_key_exists("results", $aTmpInterval) && array_key_exists("results", $aTmpAgentQueueInterval)) {
             $aInterval = $aTmpInterval["results"];
+            $aIntervalAgentQueue = $aTmpAgentQueueInterval["results"];
             foreach ($aInterval as $interval):
                 $cAgentID = $interval["agentId"];
                 $cCounter++;
                 $cAvgCallLength = $interval["avgHandleTime"];
                 $cAvgCallLengthvgTimeToAnswer = $interval["avgTimeToAnswer"];
-
-                $answeredCallCount = $interval["answeredCallCount"]; //answeredCallCount
-                $agentWrapUpTime = $interval["agentWrapUpTime"];
+                foreach ($aIntervalAgentQueue as $agentQueue):
+                    if ($agentQueue["agentId"] == $cAgentID) {
+                        $answeredCallCount = $agentQueue["answeredCallCount"];
+                        $agentWrapUpTime = $agentQueue["agentWrapUpTime"];
+                        $cCampaign = $agentQueue["queueName"];
+                    } else {
+                        $answeredCallCount = 0;
+                        $agentWrapUpTime = 0;
+                        $cCampaign = 0;
+                    }
+                endforeach;
                 if ($answeredCallCount == 0) {
                     $cAvgwraplen = 0;
                 } else {
                     $cAvgwraplen = $agentWrapUpTime / $answeredCallCount;
                 }
                 $cCalls = $answeredCallCount;
-                $cCampaign = "Campaign";
-                $cHalfHour = $aRawInterval["start"];
+                $cHalfHour = $aRawAgentInterval["start"];
                 $cOfferedCallCount = $interval["offeredCallCount"];
                 array_push($aReport, array($cAgentID, $cAvgCallLength, $cAvgCallLengthvgTimeToAnswer, $cAvgwraplen, $cCalls, $cCampaign, $cCounter, $cHalfHour, $cOfferedCallCount));
             endforeach;
-        }        
+        }
         return $aReport;
     }
 

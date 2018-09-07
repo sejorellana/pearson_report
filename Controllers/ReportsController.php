@@ -40,5 +40,5 @@ class ReportsController {
 
 }
 
-$oReport = new ReportsController();
-echo json_encode($oReport->getAgentPerformance());
+//$oReport = new ReportsController();
+//echo json_encode($oReport->getAgentPerformance());
