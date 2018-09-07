@@ -4,6 +4,7 @@ include_once __DIR__ . '/TimeController.php';
 include_once __DIR__ . '/../Entities/Api.php';
 include_once __DIR__ . '/../Entities/Credential.php';
 include_once __DIR__ . '/../Libs/ApiLib.php';
+include_once __DIR__ . '/MailController.php';
 
 /**
  * Description of queueController
@@ -24,7 +25,13 @@ class queueController {
             $json = file_get_contents(__DIR__ . "/../Setup/setup.json");
             $aJson = json_decode($json, TRUE);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aJson;
     }
@@ -41,7 +48,13 @@ class queueController {
             $oTime = new TimeController();
             $aTimes = $oTime->getRange();
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aTimes;
     }
@@ -81,7 +94,13 @@ class queueController {
             $oApiLib = new ApiLib();
             $aReturn = array("interval" => json_decode($oApiLib->get($oApi, $oCredential), true), "start" => $start);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -124,11 +143,17 @@ class queueController {
                 $aReturn = $aTmpInteractions["results"];
             }
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
-    
+
     /**
      * getSegments
      * 
@@ -154,11 +179,17 @@ class queueController {
             endforeach;
             $aReturn = $aSegments;
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
-    
+
     /**
      * getSegmentsByQueue
      * 
@@ -187,12 +218,18 @@ class queueController {
             endforeach;
             $aReturn = $aSegmentsByQueue;
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
 
         return $aReturn;
     }
-    
+
     /**
      * getCount
      * 
@@ -222,7 +259,13 @@ class queueController {
             endforeach;
             $aResult = $aQueues;
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aResult;
     }
@@ -236,43 +279,53 @@ class queueController {
      */
     public function getQueuesReport() {
         $aReport = array();
-        $aRawQueueInterval = $this->wfmQueueInterval();
-        $aTmpInterval = $aRawQueueInterval["interval"];
-        $aSegmentsCount = $this->getCount();
-        if (array_key_exists("results", $aTmpInterval)) {
-            $aInterval = $aTmpInterval["results"];
-            foreach ($aInterval as $interval):
-                $cHalfHour = $aRawQueueInterval["start"];
-                $tcsData = "TCSDATA";
-                $cCallType = $interval["queueName"];
-                if (array_key_exists($cCallType, $aSegmentsCount)) {
-                    $cSegments = $aSegmentsCount[$cCallType]["total"];
-                    $cAnsweredSegments = $aSegmentsCount[$cCallType]["asnwered"];
-                } else {
-                    $cSegments = "0";
-                    $cAnsweredSegments = "0";
-                }
+        try {
+            $aRawQueueInterval = $this->wfmQueueInterval();
+            $aTmpInterval = $aRawQueueInterval["interval"];
+            $aSegmentsCount = $this->getCount();
+            if (array_key_exists("results", $aTmpInterval)) {
+                $aInterval = $aTmpInterval["results"];
+                foreach ($aInterval as $interval):
+                    $cHalfHour = $aRawQueueInterval["start"];
+                    $tcsData = "TCSDATA";
+                    $cCallType = $interval["queueName"];
+                    if (array_key_exists($cCallType, $aSegmentsCount)) {
+                        $cSegments = $aSegmentsCount[$cCallType]["total"];
+                        $cAnsweredSegments = $aSegmentsCount[$cCallType]["asnwered"];
+                    } else {
+                        $cSegments = "0";
+                        $cAnsweredSegments = "0";
+                    }
 
-                $cAvgTimeToAnswer = $interval["avgTimeToAnswer"];
+                    $cAvgTimeToAnswer = $interval["avgTimeToAnswer"];
 
-                $answerTime = $interval["answerTime"];
-                $numberOfCalls = $interval["answeredCallCount"];
-                if ($numberOfCalls != 0) {
-                    $cAvgCallLength = $answerTime / $numberOfCalls;
-                } else {
-                    $cAvgCallLength = 0;
-                }
+                    $answerTime = $interval["answerTime"];
+                    $numberOfCalls = $interval["answeredCallCount"];
+                    if ($numberOfCalls != 0) {
+                        $cAvgCallLength = $answerTime / $numberOfCalls;
+                    } else {
+                        $cAvgCallLength = 0;
+                    }
 
-                $agentWrapUpTime = $interval["agentWrapUpTime"];
-                if ($numberOfCalls != 0) {
-                    $cAvgWrapUpTime = $agentWrapUpTime / $numberOfCalls;
-                } else {
-                    $cAvgWrapUpTime = 0;
-                }
+                    $agentWrapUpTime = $interval["agentWrapUpTime"];
+                    if ($numberOfCalls != 0) {
+                        $cAvgWrapUpTime = $agentWrapUpTime / $numberOfCalls;
+                    } else {
+                        $cAvgWrapUpTime = 0;
+                    }
 
-                $cSla = $interval["sla"];
-                array_push($aReport, array($cHalfHour, $tcsData, $cCallType, $cSegments, $cAnsweredSegments, $cAvgTimeToAnswer, $cAvgCallLength, $cAvgWrapUpTime, $cSla));
-            endforeach;
+                    $cSla = $interval["sla"];
+                    array_push($aReport, array($cHalfHour, $tcsData, $cCallType, $cSegments, $cAnsweredSegments, $cAvgTimeToAnswer, $cAvgCallLength, $cAvgWrapUpTime, $cSla));
+                endforeach;
+            }
+        } catch (Exception $exc) {
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReport;
     }

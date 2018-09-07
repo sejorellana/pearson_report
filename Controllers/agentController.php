@@ -6,6 +6,7 @@ include_once __DIR__ . '/../Entities/Credential.php';
 include_once __DIR__ . '/../Libs/ApiLib.php';
 include_once __DIR__ . '/../Entities/File.php';
 include_once __DIR__ . '/FileController.php';
+include_once __DIR__ . '/MailController.php';
 
 /**
  * Description of agentController
@@ -26,11 +27,17 @@ class agentController {
             $json = file_get_contents(__DIR__ . "/../Setup/setup.json");
             $aJson = json_decode($json, TRUE);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aJson;
     }
-    
+
     /**
      * getRange
      * 
@@ -43,7 +50,13 @@ class agentController {
             $oTime = new TimeController();
             $aTimes = $oTime->getRange();
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aTimes;
     }
@@ -83,7 +96,13 @@ class agentController {
             $oApiLib = new ApiLib();
             $aReturn = array("interval" => json_decode($oApiLib->get($oApi, $oCredential), true), "start" => $start);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -123,7 +142,13 @@ class agentController {
             $oApiLib = new ApiLib();
             $aReturn = array("interval" => json_decode($oApiLib->get($oApi, $oCredential), true), "start" => $start);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -137,40 +162,50 @@ class agentController {
      */
     public function getAgentReport() {
         $aReport = array();
-        $aRawAgentInterval = $this->wfmAgentInterval();
-        $aTmpInterval = $aRawAgentInterval["interval"];
-        $aRawAgentQueueInterval = $this->wfmAgentQueueInterval();
-        $aTmpAgentQueueInterval = $aRawAgentQueueInterval["interval"];
-        $cCounter = 0;
-        if (array_key_exists("results", $aTmpInterval) && array_key_exists("results", $aTmpAgentQueueInterval)) {
-            $aInterval = $aTmpInterval["results"];
-            $aIntervalAgentQueue = $aTmpAgentQueueInterval["results"];
-            foreach ($aInterval as $interval):
-                $cAgentID = $interval["agentId"];
-                $cCounter++;
-                $cAvgCallLength = $interval["avgHandleTime"];
-                $cAvgCallLengthvgTimeToAnswer = $interval["avgTimeToAnswer"];
-                foreach ($aIntervalAgentQueue as $agentQueue):
-                    if ($agentQueue["agentId"] == $cAgentID) {
-                        $answeredCallCount = $agentQueue["answeredCallCount"];
-                        $agentWrapUpTime = $agentQueue["agentWrapUpTime"];
-                        $cCampaign = $agentQueue["queueName"];
+        try {
+            $aRawAgentInterval = $this->wfmAgentInterval();
+            $aTmpInterval = $aRawAgentInterval["interval"];
+            $aRawAgentQueueInterval = $this->wfmAgentQueueInterval();
+            $aTmpAgentQueueInterval = $aRawAgentQueueInterval["interval"];
+            $cCounter = 0;
+            if (array_key_exists("results", $aTmpInterval) && array_key_exists("results", $aTmpAgentQueueInterval)) {
+                $aInterval = $aTmpInterval["results"];
+                $aIntervalAgentQueue = $aTmpAgentQueueInterval["results"];
+                foreach ($aInterval as $interval):
+                    $cAgentID = $interval["agentId"];
+                    $cCounter++;
+                    $cAvgCallLength = $interval["avgHandleTime"];
+                    $cAvgCallLengthvgTimeToAnswer = $interval["avgTimeToAnswer"];
+                    foreach ($aIntervalAgentQueue as $agentQueue):
+                        if ($agentQueue["agentId"] == $cAgentID) {
+                            $answeredCallCount = $agentQueue["answeredCallCount"];
+                            $agentWrapUpTime = $agentQueue["agentWrapUpTime"];
+                            $cCampaign = $agentQueue["queueName"];
+                        } else {
+                            $answeredCallCount = 0;
+                            $agentWrapUpTime = 0;
+                            $cCampaign = 0;
+                        }
+                    endforeach;
+                    if ($answeredCallCount == 0) {
+                        $cAvgwraplen = 0;
                     } else {
-                        $answeredCallCount = 0;
-                        $agentWrapUpTime = 0;
-                        $cCampaign = 0;
+                        $cAvgwraplen = $agentWrapUpTime / $answeredCallCount;
                     }
+                    $cCalls = $answeredCallCount;
+                    $cHalfHour = $aRawAgentInterval["start"];
+                    $cOfferedCallCount = $interval["offeredCallCount"];
+                    array_push($aReport, array($cAgentID, $cAvgCallLength, $cAvgCallLengthvgTimeToAnswer, $cAvgwraplen, $cCalls, $cCampaign, $cCounter, $cHalfHour, $cOfferedCallCount));
                 endforeach;
-                if ($answeredCallCount == 0) {
-                    $cAvgwraplen = 0;
-                } else {
-                    $cAvgwraplen = $agentWrapUpTime / $answeredCallCount;
-                }
-                $cCalls = $answeredCallCount;
-                $cHalfHour = $aRawAgentInterval["start"];
-                $cOfferedCallCount = $interval["offeredCallCount"];
-                array_push($aReport, array($cAgentID, $cAvgCallLength, $cAvgCallLengthvgTimeToAnswer, $cAvgwraplen, $cCalls, $cCampaign, $cCounter, $cHalfHour, $cOfferedCallCount));
-            endforeach;
+            }
+        } catch (Exception $exc) {
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReport;
     }

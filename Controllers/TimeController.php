@@ -1,5 +1,7 @@
 <?php
 
+include_once __DIR__ . '/MailController.php';
+
 /**
  * This class provide the basic functionalities of time for the reports
  *
@@ -19,7 +21,13 @@ class TimeController {
             $dtNow = new DateTime();
             $sUtc = $dtNow->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i');
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $sUtc;
     }
@@ -37,7 +45,13 @@ class TimeController {
             $time = $time - (30 * 60);
             $date = date("Y-m-d H:i", $time);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $date;
     }
@@ -71,11 +85,17 @@ class TimeController {
             }
             $sDateTime = $aDate[0] . "T" . $hour . ":" . $minute . "Z";
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $sDateTime;
     }
-    
+
     /**
      * middle
      * 
@@ -90,7 +110,13 @@ class TimeController {
             $time = $time + (15 * 60);
             $date = date("Y-m-d H:i", $time);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $date;
     }
@@ -113,7 +139,13 @@ class TimeController {
             $sMiddle = $this->format($sMiddle);
             $aReturn = array("result" => TRUE, "start" => $sStart, "middle" => $sMiddle, "end" => $sEnd);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
