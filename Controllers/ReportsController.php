@@ -32,7 +32,7 @@ class ReportsController {
             $oFile->setContent($aReport);
             $delimiter = " ";
             $oFileController = new FileController();
-            $aReturn = $oFileController->create($oFile, $delimiter);
+            $aReturn = array("creation" => $oFileController->create($oFile, $delimiter), "oFile" => $oFile);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
@@ -59,7 +59,7 @@ class ReportsController {
             $oFile->setContent($aReport);
             $delimiter = " ";
             $oFileController = new FileController();
-            $aReturn = $oFileController->create($oFile, $delimiter);
+            $aReturn = array("creation" => $oFileController->create($oFile, $delimiter), "oFile" => $oFile);
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
