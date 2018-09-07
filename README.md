@@ -28,7 +28,7 @@ The following script allows the generation of two reports, the Queue wise report
     "ftpFolder": "Folder/where/the/report/are/going/to/be/sent"  
 ```
  8. Fill the variables in mail.json as is show:
- ```sh
+```sh
     "to": "email@domain.com",
     "from": "sender@domain.com",
     "cc": "email1@domain.com,email2@domain.com,emailn@domain.com",
@@ -38,9 +38,9 @@ The following script allows the generation of two reports, the Queue wise report
     "smtpPort": "21",
     "smtUser": "user@domain.com",
     "smtpPassword": "usePassword"
- ```
+```
  9. Set up the cron-jobs that are going to be executed each 30 minutes as show:
- ```sh
+```sh
 */30 * * * * /pearson-reports/Web/agent.php >/dev/null 2>&1
 */30 * * * * /pearson-reports/Web/queuewise.php >/dev/null 2>&1
- ```
+```
