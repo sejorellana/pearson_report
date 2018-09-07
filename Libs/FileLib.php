@@ -8,6 +8,7 @@ include_once __DIR__ . '/../Entities/File.php';
  * @author josuefrancisco
  */
 class FileLib {
+
     /**
      * create
      * 
@@ -25,15 +26,19 @@ class FileLib {
             $ifName = $oFile->getName();
             $ifExtension = $oFile->getExtension();
             $dir = __DIR__ . "/../Web/Pendings/";
-            
-            $fp = fopen($dir."$ifName.$ifExtension", 'w');
-
+            $fp = fopen($dir . "$ifName.$ifExtension", 'w');
             foreach ($list as $row) {
                 fputcsv($fp, $row, $delimiter);
             }
             $aReturn = array("result" => TRUE, "message" => "The file has been created successfully");
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }

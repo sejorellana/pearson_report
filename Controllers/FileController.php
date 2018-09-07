@@ -3,6 +3,7 @@
 include_once __DIR__ . '/../Entities/File.php';
 include_once __DIR__ . '/../Libs/FileLib.php';
 include_once __DIR__ . '/../Entities/Ftp.php';
+include_once __DIR__ . '/MailController.php';
 
 /**
  * Provide all function related with the management of files
@@ -29,8 +30,10 @@ class FileController {
             $sMsj = $exc->getMessage();
             $sLine = $exc->getLine();
             $sCode = $exc->getCode();
-            $sMessage = "$sCode -- $sMsj -- $sLine";
-            $aReturn = array("result" => FALSE, "message" => $sMessage);
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -66,8 +69,10 @@ class FileController {
             $sMsj = $exc->getMessage();
             $sLine = $exc->getLine();
             $sCode = $exc->getCode();
-            $sMessage = "$sCode -- $sMsj -- $sLine";
-            $aReturn = array("result" => FALSE, "message" => $sMessage);
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -86,7 +91,13 @@ class FileController {
             $ifFile = __DIR__ . "/../Web/Pendings/$ifName.$ifExtension";
             unlink($ifFile);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
     }
 
@@ -102,7 +113,13 @@ class FileController {
             $ifNewest = $ofFiles[0];
             unlink($ifNewest);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
     }
 
@@ -146,7 +163,13 @@ class FileController {
             }
             ftp_close($ftpConn);
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -177,7 +200,13 @@ class FileController {
                 $aReturn = $aCreateFile;
             }
         } catch (Exception $exc) {
-            echo $exc->getTraceAsString();
+            $sMsj = $exc->getMessage();
+            $sLine = $exc->getLine();
+            $sCode = $exc->getCode();
+            $sFile = $exc->getFile();
+            $sTrace = $exc->getTraceAsString();
+            $oMail = new MailController();
+            $oMail->sendEmail($sCode, $sMsj, $sFile, $sLine, $sTrace);
         }
         return $aReturn;
     }
@@ -206,6 +235,7 @@ class FileController {
 //$oFile->setExtension("txt");
 
 //$oFileController = new FileController();
+//echo json_encode($oFileController->create($oFile, $delimiter));
 //echo json_encode($oFileController->test($oFile, $delimiter));
 //echo json_encode($oFileController->sendReport($oFile, $delimiter, $oFtp, $ifFtpName));
 //echo json_encode($oFileController->__move2($oFile, $oFtp));

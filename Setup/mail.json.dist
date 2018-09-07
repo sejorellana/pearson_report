@@ -1,0 +1,11 @@
+{
+    "to": "",
+    "from": "",
+    "cc": "",
+    "replyTo": "",
+    "subject": "",
+    "smtpHost": "",
+    "smtpPort": "",
+    "smtUser": "",
+    "smtpPassword": ""
+}
