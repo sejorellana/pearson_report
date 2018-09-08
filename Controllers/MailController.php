@@ -29,6 +29,17 @@ class MailController {
         return $aJson;
     }
 
+    /**
+     * sendEmail
+     * 
+     * Send an error email
+     * 
+     * @param String $code
+     * @param String $message
+     * @param String $file
+     * @param String $line
+     * @param String $trace
+     */
     public function sendEmail($code, $message, $file, $line, $trace) {
         try {
             $aMail = $this->parseSetup();
@@ -57,7 +68,7 @@ class MailController {
 
             $mail->isHTML(true);
             $mail->Subject = "$subject";
-            $mail->AltBody = "To view the message, please use an HTML compatible email viewer!";
+            $mail->AltBody = "To view the message, please use an HTML compatible email viewer";
             $hmltBody = "
             <html>
             <head>
@@ -87,11 +98,6 @@ class MailController {
             $mail->AddReplyTo("$replyTo", 'Information');
             $mail->IsHTML(true);
             $mail->send();
-//            if (!$mail->send()) {
-//                echo "Mailer Error: " . $mail->ErrorInfo;
-//            } else {
-//                echo "Message sent!";
-//            }
         } catch (Exception $exc) {
             echo $exc->getTraceAsString();
         }
